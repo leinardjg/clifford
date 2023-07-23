@@ -1,0 +1,1 @@
+pub const MAX_HISTORY_COUNT : i32 = 2;
