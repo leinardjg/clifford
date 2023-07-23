@@ -8,7 +8,7 @@ use std::path::Path;
 use commands::*;
 
 static CONFIG_FILE_NAME : &str = "./clifford.config";
-static CLIFFORD_FILE_NAME : &str = "./clifford";
+static CLIFFORD_FILE_NAME : &str = "./clifford_";
 static CLIFFORD_SAVE_FILE_NAME : &str = "./clifford.save";
 
 #[derive(Parser)]
@@ -46,6 +46,10 @@ fn into_command(arguments : CLI) {
 }
 
 fn outof_command() {
+    if !Path::new(CLIFFORD_FILE_NAME).exists() {
+        return println!("");
+    }
+
     let content = read_to_string(CLIFFORD_FILE_NAME).expect("Error");
     println!("{}", content)
 }
