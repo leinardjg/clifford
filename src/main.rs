@@ -46,11 +46,25 @@ fn into_command(arguments : CLI) {
 }
 
 fn outof_command() {
-    if !Path::new(CLIFFORD_FILE_NAME).exists() {
+
+    let index = match get_file_value_int(CLIFFORD_SAVE_FILE_NAME, "CURRENT_INDEX") {
+        Some(number) => {
+            if number - 1 > 0 {
+                number
+            } else {
+                0
+            }
+        },
+        None => 0
+    };
+
+    let filename = CLIFFORD_FILE_NAME.to_string() + &(index).to_string();
+
+    if !Path::new(&filename).exists() {
         return println!("");
     }
 
-    let content = read_to_string(CLIFFORD_FILE_NAME).expect("Error");
+    let content = read_to_string(filename).expect("Error");
     println!("{}", content)
 }
 
