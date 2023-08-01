@@ -1,25 +1,26 @@
 mod defaults;
-mod commands;
 
 use clap::Parser;
 use defaults::MAX_HISTORY_COUNT;
 use std::fs::{ read_to_string, write };
 use std::path::Path;
-use commands::*;
 
 static CONFIG_FILE_NAME : &str = "./clifford.config";
-static CLIFFORD_FILE_NAME : &str = "./clifford_";
+static CLIFFORD_FILE_NAME : &str = "./clifford.";
+static CLIFFORD_FILE_EXTENSION : &str = ".data";
 static CLIFFORD_SAVE_FILE_NAME : &str = "./clifford.save";
 
 #[derive(Parser)]
-struct CLI {
-    command : Option<String>,
-    arg1 : Option<String>,
-    arg2 : Option<String>,
-    arg3 : Option<String>,
+struct Args {
+    /// optional string to process
+    string : Option<String>
 }
 
-fn into_command(arguments : CLI) {
+fn get_filename(index : i32) -> String {
+    CLIFFORD_FILE_NAME.to_string() + &index.to_string() + &CLIFFORD_FILE_EXTENSION.to_string()
+}
+
+fn into_command(arguments : Args) {
     let max_history_count = match get_file_value_int(CONFIG_FILE_NAME, "MAX_HISTORY_COUNT") {
         Some(number) => number,
         None => MAX_HISTORY_COUNT
@@ -27,16 +28,14 @@ fn into_command(arguments : CLI) {
 
     let filename = match get_file_value_int(CLIFFORD_SAVE_FILE_NAME, "CURRENT_INDEX") {
         Some(value) => {
-            let name = CLIFFORD_FILE_NAME.to_string();
-            let val = (value % max_history_count).to_string();
-            name + &val
+            get_filename(value % max_history_count)
         },
         None => {
-            CLIFFORD_FILE_NAME.to_string() + &(0.to_string())
+            CLIFFORD_FILE_NAME.to_string() + &(0.to_string()) + &CLIFFORD_FILE_EXTENSION.to_string()
         }
     };
 
-    let content = match arguments.arg1 {
+    let content = match arguments.string {
         Some(text) => text,
         None => "".to_string(),
     };
@@ -58,7 +57,7 @@ fn outof_command() {
         None => 0
     };
 
-    let filename = CLIFFORD_FILE_NAME.to_string() + &(index).to_string();
+    let filename = CLIFFORD_FILE_NAME.to_string() + &(index).to_string() + &CLIFFORD_FILE_EXTENSION.to_string();
 
     if !Path::new(&filename).exists() {
         return println!("");
@@ -68,21 +67,12 @@ fn outof_command() {
     println!("{}", content)
 }
 
-fn parse_arguments(arguments : CLI) {
+fn parse_arguments(arguments : Args) {
 
-    let command : &str  = match arguments.command {
-        Some(ref cmd) => cmd.as_str(),
-        None => ""
-    };
-
-    if command.len() == 0 {
-        return outof_command();
-    }
-    
-    match command {
-        INTO_SHORT | INTO_LONG => into_command(arguments),
-        OUTOF_SHORT | OUTOF_LONG => outof_command(),
-        _ => println!("No match found for \"{}\"", command)
+    if arguments.string.is_some() {
+        into_command(arguments);
+    } else {
+        outof_command();
     }
 
 }
@@ -155,6 +145,6 @@ fn get_file_value_int(filename : &str, varname : &str) -> Option<i32> {
 }
 
 fn main() {
-    let arguments: CLI = CLI::parse();
+    let arguments: Args = Args::parse();
     parse_arguments(arguments)
 }
